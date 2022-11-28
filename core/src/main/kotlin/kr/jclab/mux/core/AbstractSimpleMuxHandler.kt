@@ -6,9 +6,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 typealias MuxChannelBuilder = (id: MuxId) -> MuxChannel
 
-abstract class AbstractSimpleMuxHandler (
-    protected val codec: MuxCodec<Void, MuxFrame>
-) {
+abstract class AbstractSimpleMuxHandler {
     protected var closed: Boolean = false
     protected val streamMap: MutableMap<MuxId, MuxChannel> = mutableMapOf()
 
