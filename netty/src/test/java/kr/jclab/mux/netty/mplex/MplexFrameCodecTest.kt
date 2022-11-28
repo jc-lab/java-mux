@@ -2,6 +2,7 @@ package kr.jclab.mux.netty.mplex
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.DefaultChannelId
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.DecoderException
@@ -36,8 +37,8 @@ class MplexFrameCodecTest {
     }
     val dummyId = DefaultChannelId.newInstance()
 
-    val muxIdBuilder = object: MuxIdBuilder<NettyMuxId> {
-        override fun create(streamId: Long, initiator: Boolean): NettyMuxId =
+    val muxIdBuilder = object: MuxIdBuilder<ChannelHandlerContext, NettyMuxId> {
+        override fun create(ctx: ChannelHandlerContext?, streamId: Long, initiator: Boolean): NettyMuxId =
             NettyMuxId(dummyId, streamId, initiator)
     }
 

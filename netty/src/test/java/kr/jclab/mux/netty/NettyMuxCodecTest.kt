@@ -20,8 +20,8 @@ class NettyMuxCodecTest {
     @Test
     fun mplexNettyMuxCodec() {
         val parentChannelId = DefaultChannelId.newInstance()
-        val muxIdBuilder: MuxIdBuilder<NettyMuxId> = object: MuxIdBuilder<NettyMuxId> {
-            override fun create(streamId: Long, initiator: Boolean): NettyMuxId {
+        val muxIdBuilder: MuxIdBuilder<ChannelHandlerContext, NettyMuxId> = object: MuxIdBuilder<ChannelHandlerContext, NettyMuxId> {
+            override fun create(ctx: ChannelHandlerContext?, streamId: Long, initiator: Boolean): NettyMuxId {
                 return NettyMuxId(parentChannelId, streamId, initiator)
             }
         }
