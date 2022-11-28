@@ -5,7 +5,7 @@ plugins {
 }
 
 val projectGroup = "kr.jclab.mux"
-val projectVersion = "0.0.1-rc2"
+val projectVersion = "0.0.1-rc4"
 
 group = projectGroup
 version = projectVersion
