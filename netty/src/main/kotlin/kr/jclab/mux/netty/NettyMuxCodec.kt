@@ -10,7 +10,7 @@ class NettyMuxCodec<F : MuxFrame<NettyMuxId>>(
     val codec: MuxCodec<ChannelHandlerContext, F, NettyMuxId>
 ) : ByteToMessageCodec<MuxFrame<NettyMuxId>>() {
     override fun encode(ctx: ChannelHandlerContext, msg: MuxFrame<NettyMuxId>, out: ByteBuf) =
-        codec.encode(ctx, msg as F, out)
+        codec.encode(ctx, msg, out)
 
     override fun decode(ctx: ChannelHandlerContext, `in`: ByteBuf, out: MutableList<Any>) =
         codec.decode(ctx, `in`, out as MutableList<F>)

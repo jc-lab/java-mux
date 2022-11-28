@@ -35,7 +35,7 @@ class MplexFrameCodec<C, ID: MuxId>(
      * @param msg the mplex frame.
      * @param out the list to write the bytes to.
      */
-    override fun encode(ctx: C?, msg: MplexFrame<ID>, out: ByteBuf) {
+    override fun encode(ctx: C?, msg: MuxFrame<*>, out: ByteBuf) {
         out.writeUvarint(msg.id.id.shl(3).or(MplexFlags.toMplexFlag(msg.flag, msg.id.initiator).toLong()))
         out.writeUvarint(msg.data?.readableBytes() ?: 0)
         out.writeBytes(msg.data ?: Unpooled.EMPTY_BUFFER)
