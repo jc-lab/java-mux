@@ -6,7 +6,7 @@ import kr.jclab.mux.core.exception.ConnectionClosedException
 import java.util.concurrent.atomic.AtomicLong
 
 abstract class AbstractSimpleMuxHandler<ID: MuxId> {
-    protected abstract val muxIdBuilder: MuxIdBuilder<ID>
+    protected abstract val muxIdBuilder: MuxIdBuilder<Void, ID>
 
     protected var closed: Boolean = false
     protected val streamMap: MutableMap<ID, MuxChannel<ID>> = mutableMapOf()
@@ -51,5 +51,5 @@ abstract class AbstractSimpleMuxHandler<ID: MuxId> {
 
     private val idGenerator = AtomicLong(0xF)
     protected fun generateNextId(): ID =
-        muxIdBuilder.create(idGenerator.incrementAndGet(), true)
+        muxIdBuilder.create(null, idGenerator.incrementAndGet(), true)
 }

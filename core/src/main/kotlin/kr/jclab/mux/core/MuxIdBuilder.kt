@@ -1,5 +1,5 @@
 package kr.jclab.mux.core
 
-interface MuxIdBuilder<ID : MuxId> {
-    fun create(streamId: Long, initiator: Boolean): ID
+interface MuxIdBuilder<C, ID : MuxId> {
+    fun create(ctx: C?, streamId: Long, initiator: Boolean): ID
 }
