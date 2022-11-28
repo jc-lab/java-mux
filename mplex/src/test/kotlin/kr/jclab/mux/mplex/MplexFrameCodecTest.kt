@@ -1,8 +1,10 @@
 package kr.jclab.mux.mplex
 
 import io.netty.buffer.Unpooled
-import kr.jclab.mux.core.MuxId
+import kr.jclab.mux.core.MuxIdBuilder
+import kr.jclab.mux.core.simple.SimpleMuxId
 import kr.jclab.mux.core.ProtocolViolationException
+import kr.jclab.mux.core.simple.SimpleMuxIdBuilder
 import kr.jclab.mux.core.test.EmbeddedChannel
 import kr.jclab.mux.core.types.toByteArray
 import kr.jclab.mux.core.types.toByteBuf
@@ -29,10 +31,10 @@ class MplexFrameCodecTest {
 
     @Test
     fun `check max frame size limit`() {
-        val channelLarge = EmbeddedChannel<Void, MplexFrame>(MplexFrameCodec(maxFrameDataLength = 1024))
+        val channelLarge = EmbeddedChannel(MplexFrameCodec(SimpleMuxIdBuilder(), maxFrameDataLength = 1024))
 
         val mplexFrame = MplexFrame(
-            MuxId(777, true), MplexFlags.MessageInitiator,
+            SimpleMuxId(777, true), MplexFlags.MessageInitiator,
             ByteArray(1024).toByteBuf()
         )
 
@@ -42,7 +44,7 @@ class MplexFrameCodecTest {
         val largeFrameBytes = channelLarge.readOutbound()
         val largeFrameBytesTrunc = largeFrameBytes.slice(0, largeFrameBytes.readableBytes() - 1)
 
-        val channelSmall = EmbeddedChannel<Void, MplexFrame>(MplexFrameCodec(maxFrameDataLength = 128))
+        val channelSmall = EmbeddedChannel(MplexFrameCodec(SimpleMuxIdBuilder(), maxFrameDataLength = 128))
 
         assertThrows<ProtocolViolationException> {
             channelSmall.writeInbound(largeFrameBytesTrunc)
@@ -54,12 +56,12 @@ class MplexFrameCodecTest {
     @ParameterizedTest
     @MethodSource("splitIndexes")
     fun testDecoder(sliceIdx: List<Int>) {
-        val channel = EmbeddedChannel(MplexFrameCodec<Void>())
+        val channel = EmbeddedChannel(MplexFrameCodec(SimpleMuxIdBuilder()))
 
         val mplexFrames = arrayOf(
-            MplexFrame(MuxId(777, true), MplexFlags.MessageInitiator, "Hello-1".toByteArray().toByteBuf()),
-            MplexFrame(MuxId(888, true), MplexFlags.MessageInitiator, "Hello-2".toByteArray().toByteBuf()),
-            MplexFrame(MuxId(999, true), MplexFlags.MessageInitiator, "Hello-3".toByteArray().toByteBuf())
+            MplexFrame(SimpleMuxId(777, true), MplexFlags.MessageInitiator, "Hello-1".toByteArray().toByteBuf()),
+            MplexFrame(SimpleMuxId(888, true), MplexFlags.MessageInitiator, "Hello-2".toByteArray().toByteBuf()),
+            MplexFrame(SimpleMuxId(999, true), MplexFlags.MessageInitiator, "Hello-3".toByteArray().toByteBuf())
         )
         assertTrue(
             channel.writeOutbound(*mplexFrames)

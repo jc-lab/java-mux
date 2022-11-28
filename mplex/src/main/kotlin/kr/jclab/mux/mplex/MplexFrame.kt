@@ -26,8 +26,8 @@ import kr.jclab.mux.core.types.toHex
  * @param data the data segment.
  * @see [mplex documentation](https://github.com/libp2p/specs/tree/master/mplex#opening-a-new-stream)
  */
-class MplexFrame(channelId: MuxId, val mplexFlag: Int, data: ByteBuf? = null) :
-    MuxFrame(channelId, MplexFlags.toAbstractFlag(mplexFlag), data) {
+class MplexFrame<Id : MuxId>(channelId: Id, val mplexFlag: Int, data: ByteBuf? = null) :
+    MuxFrame<Id>(channelId, MplexFlags.toAbstractFlag(mplexFlag), data) {
 
     override fun toString(): String {
         val init = if (MplexFlags.isInitiator(mplexFlag)) "init" else "resp"

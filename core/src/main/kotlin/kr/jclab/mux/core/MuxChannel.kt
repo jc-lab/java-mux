@@ -1,5 +1,5 @@
 package kr.jclab.mux.core
 
-interface MuxChannel {
-    fun getId(): MuxId
+interface MuxChannel<ID> {
+    val id: ID
 }

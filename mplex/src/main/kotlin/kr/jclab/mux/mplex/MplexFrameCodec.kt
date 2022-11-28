@@ -14,10 +14,7 @@ package kr.jclab.mux.mplex
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import kr.jclab.mux.core.MuxCodec
-import kr.jclab.mux.core.MuxFrame
-import kr.jclab.mux.core.MuxId
-import kr.jclab.mux.core.ProtocolViolationException
+import kr.jclab.mux.core.*
 import kr.jclab.mux.core.types.readUvarint
 import kr.jclab.mux.core.types.writeUvarint
 
@@ -26,9 +23,10 @@ const val DEFAULT_MAX_MPLEX_FRAME_DATA_LENGTH = 1 shl 20
 /**
  * A Netty codec implementation that converts [MplexFrame] instances to [ByteBuf] and vice-versa.
  */
-class MplexFrameCodec<C>(
+class MplexFrameCodec<ID: MuxId>(
+    val muxIdBuilder: MuxIdBuilder<ID>,
     val maxFrameDataLength: Int = DEFAULT_MAX_MPLEX_FRAME_DATA_LENGTH
-) : MuxCodec<C, MplexFrame> {
+) : MuxCodec<MplexFrame<ID>, ID> {
 
     /**
      * Encodes the given mplex frame into bytes and writes them into the output list.
@@ -37,7 +35,7 @@ class MplexFrameCodec<C>(
      * @param msg the mplex frame.
      * @param out the list to write the bytes to.
      */
-    override fun encode(ctx: C?, msg: MplexFrame, out: ByteBuf) {
+    override fun encode(msg: MplexFrame<ID>, out: ByteBuf) {
         out.writeUvarint(msg.id.id.shl(3).or(MplexFlags.toMplexFlag(msg.flag, msg.id.initiator).toLong()))
         out.writeUvarint(msg.data?.readableBytes() ?: 0)
         out.writeBytes(msg.data ?: Unpooled.EMPTY_BUFFER)
@@ -50,7 +48,7 @@ class MplexFrameCodec<C>(
      * @param msg the byte buffer.
      * @param out the list to write the extracted frame to.
      */
-    override fun decode(ctx: C?, msg: ByteBuf, out: MutableList<MplexFrame>) {
+    override fun decode(msg: ByteBuf, out: MutableList<MplexFrame<ID>>) {
         while (msg.isReadable) {
             val readerIndex = msg.readerIndex()
             val header = msg.readUvarint()
@@ -76,7 +74,7 @@ class MplexFrameCodec<C>(
             val data = msg.readSlice(lenData.toInt())
             data.retain() // MessageToMessageCodec releases original buffer, but it needs to be relayed
             val initiator = if (streamTag == MplexFlags.NewStream) false else !MplexFlags.isInitiator(streamTag)
-            val mplexFrame = MplexFrame(MuxId(streamId, initiator), streamTag, data)
+            val mplexFrame = MplexFrame(muxIdBuilder.create(streamId, initiator), streamTag, data)
             out.add(mplexFrame)
         }
     }

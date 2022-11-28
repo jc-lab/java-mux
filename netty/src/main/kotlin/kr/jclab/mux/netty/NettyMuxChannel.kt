@@ -3,17 +3,18 @@ package kr.jclab.mux.netty
 import io.netty.channel.ChannelMetadata
 import io.netty.channel.ChannelOutboundBuffer
 import io.netty.util.ReferenceCountUtil
+import kr.jclab.mux.core.MuxChannel
 import java.net.SocketAddress
 
 /**
  * Alternative effort to start MultistreamChannel implementation from AbstractChannel
  */
-class MuxChannel<TData>(
+class NettyMuxChannel<TData>(
     private val parent: AbstractMuxHandler<TData>,
-    val id: MuxId,
+    override val id: NettyMuxId,
     private val initializer: MuxChannelInitializer<TData>,
     val initiator: Boolean
-) : AbstractChildChannel(parent.ctx!!.channel(), id) {
+) : AbstractChildChannel(parent.ctx!!.channel(), id), MuxChannel<NettyMuxId> {
 
     private var remoteDisconnected = false
     private var localDisconnected = false
@@ -78,7 +79,7 @@ class MuxChannel<TData>(
  */
 class RemoteWriteClosed
 
-data class MultiplexSocketAddress(val parentAddress: SocketAddress, val streamId: MuxId) : SocketAddress() {
+data class MultiplexSocketAddress(val parentAddress: SocketAddress, val streamId: NettyMuxId) : SocketAddress() {
     override fun toString(): String {
         return "Mux[$parentAddress-$streamId]"
     }

@@ -1,3 +1,6 @@
 package kr.jclab.mux.core
 
-data class MuxId (val id: Long, val initiator: Boolean)
+interface MuxId {
+    val id: Long
+    val initiator: Boolean
+}

@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled
 import kr.jclab.mux.core.types.toByteArray
 import kr.jclab.mux.core.types.toHex
 
-open class MuxFrame(val id: MuxId, val flag: Flag, val data: ByteBuf? = null) :
+open class MuxFrame<ID: MuxId>(val id: ID, val flag: Flag, val data: ByteBuf? = null) :
     DefaultByteBufHolder(data ?: Unpooled.EMPTY_BUFFER) {
 
     enum class Flag {

@@ -2,6 +2,7 @@ package kr.jclab.mux.netty
 
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
+import kr.jclab.mux.core.MuxFrame
 import kr.jclab.mux.core.types.sliceMaxSize
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicLong
@@ -23,16 +24,16 @@ abstract class NettyMuxHandler(
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-        msg as MuxFrame
+        msg as MuxFrame<*>
         when (msg.flag) {
-            MuxFrame.Flag.OPEN -> onRemoteOpen(msg.id)
-            MuxFrame.Flag.CLOSE -> onRemoteDisconnect(msg.id)
-            MuxFrame.Flag.RESET -> onRemoteClose(msg.id)
-            MuxFrame.Flag.DATA -> childRead(msg.id, msg.data!!)
+            MuxFrame.Flag.OPEN -> onRemoteOpen(msg.id as NettyMuxId)
+            MuxFrame.Flag.CLOSE -> onRemoteDisconnect(msg.id as NettyMuxId)
+            MuxFrame.Flag.RESET -> onRemoteClose(msg.id as NettyMuxId)
+            MuxFrame.Flag.DATA -> childRead(msg.id as NettyMuxId, msg.data!!)
         }
     }
 
-    override fun onChildWrite(child: MuxChannel<ByteBuf>, data: ByteBuf) {
+    override fun onChildWrite(child: NettyMuxChannel<ByteBuf>, data: ByteBuf) {
         val ctx = getChannelHandlerContext()
         data.sliceMaxSize(maxFrameDataLength)
             .map { frameSliceBuf ->
@@ -43,23 +44,23 @@ abstract class NettyMuxHandler(
         ctx.flush()
     }
 
-    override fun onLocalOpen(child: MuxChannel<ByteBuf>) {
-        getChannelHandlerContext().writeAndFlush(MuxFrame(child.id, MuxFrame.Flag.OPEN))
+    override fun onLocalOpen(child: NettyMuxChannel<ByteBuf>) {
+        getChannelHandlerContext().writeAndFlush(MuxFrame<NettyMuxId>(child.id, MuxFrame.Flag.OPEN))
     }
 
-    override fun onLocalDisconnect(child: MuxChannel<ByteBuf>) {
-        getChannelHandlerContext().writeAndFlush(MuxFrame(child.id, MuxFrame.Flag.CLOSE))
+    override fun onLocalDisconnect(child: NettyMuxChannel<ByteBuf>) {
+        getChannelHandlerContext().writeAndFlush(MuxFrame<NettyMuxId>(child.id, MuxFrame.Flag.CLOSE))
     }
 
-    override fun onLocalClose(child: MuxChannel<ByteBuf>) {
-        getChannelHandlerContext().writeAndFlush(MuxFrame(child.id, MuxFrame.Flag.RESET))
+    override fun onLocalClose(child: NettyMuxChannel<ByteBuf>) {
+        getChannelHandlerContext().writeAndFlush(MuxFrame<NettyMuxId>(child.id, MuxFrame.Flag.RESET))
     }
 
-    override fun onRemoteCreated(child: MuxChannel<ByteBuf>) {
+    override fun onRemoteCreated(child: NettyMuxChannel<ByteBuf>) {
     }
 
     override fun generateNextId() =
-        MuxId(getChannelHandlerContext().channel().id(), idGenerator.incrementAndGet(), true)
+        NettyMuxId(getChannelHandlerContext().channel().id(), idGenerator.incrementAndGet(), true)
 
 //    private fun createStream(channel: MuxChannel<ByteBuf>): Stream {
 //        val connection = ctx!!.channel().attr(CONNECTION).get()
