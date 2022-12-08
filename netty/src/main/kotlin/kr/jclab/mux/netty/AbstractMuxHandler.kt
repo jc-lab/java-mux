@@ -62,7 +62,7 @@ abstract class AbstractMuxHandler<TData>() :
             id,
             initializer,
             false
-        )
+        ).channel
         onRemoteCreated(child)
     }
 
@@ -98,11 +98,11 @@ abstract class AbstractMuxHandler<TData>() :
         id: NettyMuxId,
         initializer: MuxChannelInitializer<TData>,
         initiator: Boolean
-    ): NettyMuxChannel<TData> {
+    ): CreateChildResult<TData> {
         val child = NettyMuxChannel(this, id, initializer, initiator)
         streamMap[id] = child
-        ctx!!.channel().eventLoop().register(child)
-        return child
+        val registerFuture = ctx!!.channel().eventLoop().register(child)
+        return CreateChildResult(child, registerFuture)
     }
 
     // protected open fun createChannel(id: MuxId, initializer: ChannelHandler) = MuxChannel(this, id, initializer)
@@ -114,22 +114,25 @@ abstract class AbstractMuxHandler<TData>() :
             checkClosed() // if already closed then event loop is already down and async task may never execute
             return activeFuture.thenApplyAsync(
                 Function {
-                    checkClosed() // close may happen after above check and before this point
-                    val child = createChild(
-                        generateNextId(),
-                        {
-                            onLocalOpen(it)
-                            outboundInitializer(it)
-                        },
-                        true
-                    )
-                    child
+                    newStreamSync(outboundInitializer).channel
                 },
                 getChannelHandlerContext().channel().eventLoop()
             )
         } catch (e: Exception) {
             return completedExceptionally(e)
         }
+    }
+
+    fun newStreamSync(outboundInitializer: MuxChannelInitializer<TData>): CreateChildResult<TData> {
+        checkClosed() // close may happen after above check and before this point
+        return createChild(
+            generateNextId(),
+            {
+                onLocalOpen(it)
+                outboundInitializer(it)
+            },
+            true
+        )
     }
 
     private fun checkClosed() = if (closed) throw ConnectionClosedException("Can't create a new stream: connection was closed: " + ctx!!.channel()) else Unit
