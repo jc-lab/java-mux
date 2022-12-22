@@ -6,6 +6,7 @@ import kr.jclab.mux.core.exception.ConnectionClosedException
 import kr.jclab.mux.core.exception.InternalErrorException
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
+import kotlin.jvm.Throws
 
 typealias MuxChannelInitializer<TData> = (NettyMuxChannel<TData>) -> Unit
 
@@ -109,6 +110,11 @@ abstract class AbstractMuxHandler<TData>() :
     // protected open fun createChannel(id: MuxId, initializer: ChannelHandler) = MuxChannel(this, id, initializer)
 
     protected abstract fun generateNextId(): NettyMuxId
+
+    @Throws(ConnectionClosedException::class)
+    protected fun getStream(id: NettyMuxId): NettyMuxChannel<TData> {
+        return streamMap[id] ?: throw ConnectionClosedException("Channel with id $id not opened")
+    }
 
     fun newStream(outboundInitializer: MuxChannelInitializer<TData>): CompletableFuture<NettyMuxChannel<TData>> {
         try {
