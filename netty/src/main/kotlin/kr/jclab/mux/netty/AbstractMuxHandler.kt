@@ -56,14 +56,15 @@ abstract class AbstractMuxHandler<TData>() :
 
     abstract fun onChildWrite(child: NettyMuxChannel<TData>, data: TData)
 
-    protected fun onRemoteOpen(id: NettyMuxId) {
+    protected fun onRemoteOpen(id: NettyMuxId): CreateChildResult<TData> {
         val initializer = inboundInitializer
-        val child = createChild(
+        val result = createChild(
             id,
             initializer,
             false
-        ).channel
-        onRemoteCreated(child)
+        )
+        onRemoteCreated(result.channel)
+        return result
     }
 
     protected fun onRemoteDisconnect(id: NettyMuxId) {
