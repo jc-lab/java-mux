@@ -9,7 +9,7 @@ import java.net.SocketAddress
 /**
  * Alternative effort to start MultistreamChannel implementation from AbstractChannel
  */
-class NettyMuxChannel<TData>(
+open class NettyMuxChannel<TData>(
     private val parent: AbstractMuxHandler<TData>,
     override val id: NettyMuxId,
     private val initializer: MuxChannelInitializer<TData>,
