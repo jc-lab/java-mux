@@ -96,12 +96,19 @@ abstract class AbstractMuxHandler<TData>() :
     protected abstract fun onLocalClose(child: NettyMuxChannel<TData>)
     protected abstract fun onLocalDisconnect(child: NettyMuxChannel<TData>)
 
+    protected open fun newChildChannel(
+        id: NettyMuxId,
+        initializer: MuxChannelInitializer<TData>,
+        initiator: Boolean
+    ): NettyMuxChannel<TData> =
+        NettyMuxChannel(this, id, initializer, initiator)
+
     private fun createChild(
         id: NettyMuxId,
         initializer: MuxChannelInitializer<TData>,
         initiator: Boolean
     ): CreateChildResult<TData> {
-        val child = NettyMuxChannel(this, id, initializer, initiator)
+        val child = newChildChannel(id, initializer, initiator)
         streamMap[id] = child
         val registerFuture = ctx!!.channel().eventLoop().register(child)
         return CreateChildResult(child, registerFuture)
