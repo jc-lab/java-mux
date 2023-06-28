@@ -19,14 +19,14 @@ import java.net.SocketAddress
  * are not supported
  */
 abstract class AbstractChildChannel(parent: Channel, id: ChannelId?) : AbstractChannel(parent, id) {
-    private enum class State {
+    protected enum class State {
         OPEN, ACTIVE, INACTIVE, CLOSED
     }
 
-    private val parentCloseFuture = parent.closeFuture()
-    private var state = State.OPEN
-    private var closeImplicitly = false
-    private val parentCloseListener = GenericFutureListener { _: Future<Void> -> closeImpl() }
+    protected val parentCloseFuture = parent.closeFuture()
+    protected var state = State.OPEN
+    protected var closeImplicitly = false
+    protected val parentCloseListener = GenericFutureListener { _: Future<Void> -> closeImpl() }
 
     fun closeImpl() {
         closeImplicitly = true
