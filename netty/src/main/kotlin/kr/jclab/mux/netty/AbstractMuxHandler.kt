@@ -64,7 +64,7 @@ abstract class AbstractMuxHandler<TData>() :
             initializer,
             false
         )
-        onRemoteCreated(result.channel)
+        onRemoteCreated(result)
         return result
     }
 
@@ -91,7 +91,9 @@ abstract class AbstractMuxHandler<TData>() :
     }
 
     abstract override fun channelRead(ctx: ChannelHandlerContext, msg: Any)
-    protected open fun onRemoteCreated(child: NettyMuxChannel<TData>) {}
+    protected open fun onRemoteCreated(result: CreateChildResult<TData>) {
+        result.register()
+    }
     protected abstract fun onLocalOpen(child: NettyMuxChannel<TData>)
     protected abstract fun onLocalClose(child: NettyMuxChannel<TData>)
     protected abstract fun onLocalDisconnect(child: NettyMuxChannel<TData>)
@@ -110,8 +112,7 @@ abstract class AbstractMuxHandler<TData>() :
     ): CreateChildResult<TData> {
         val child = newChildChannel(id, initializer, initiator)
         streamMap[id] = child
-        val registerFuture = ctx!!.channel().eventLoop().register(child)
-        return CreateChildResult(child, registerFuture)
+        return CreateChildResult(child, ctx!!.channel().eventLoop())
     }
 
     // protected open fun createChannel(id: MuxId, initializer: ChannelHandler) = MuxChannel(this, id, initializer)
@@ -123,12 +124,17 @@ abstract class AbstractMuxHandler<TData>() :
         return streamMap[id] ?: throw ConnectionClosedException("Channel with id $id not opened")
     }
 
+    /**
+     * new stream with register to event loop
+     */
     fun newStream(outboundInitializer: MuxChannelInitializer<TData>): CompletableFuture<NettyMuxChannel<TData>> {
         try {
             checkClosed() // if already closed then event loop is already down and async task may never execute
             return activeFuture.thenApplyAsync(
                 Function {
-                    newStreamSync(outboundInitializer).channel
+                    val result = newStreamSync(outboundInitializer)
+                    result.register()
+                    result.channel
                 },
                 getChannelHandlerContext().channel().eventLoop()
             )
@@ -137,6 +143,9 @@ abstract class AbstractMuxHandler<TData>() :
         }
     }
 
+    /**
+     * new stream without register to event loop
+     */
     fun newStreamSync(outboundInitializer: MuxChannelInitializer<TData>): CreateChildResult<TData> {
         checkClosed() // close may happen after above check and before this point
         return createChild(

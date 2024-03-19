@@ -56,9 +56,6 @@ abstract class NettyMuxHandler(
         getChannelHandlerContext().writeAndFlush(MuxFrame<NettyMuxId>(child.id, MuxFrame.Flag.RESET))
     }
 
-    override fun onRemoteCreated(child: NettyMuxChannel<ByteBuf>) {
-    }
-
     override fun generateNextId() =
         NettyMuxId(getChannelHandlerContext().channel().id(), idGenerator.incrementAndGet(), true)
 
