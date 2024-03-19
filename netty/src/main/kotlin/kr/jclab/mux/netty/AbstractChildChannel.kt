@@ -95,5 +95,7 @@ abstract class AbstractChildChannel(parent: Channel, id: ChannelId?) : AbstractC
         override fun connect(remoteAddress: SocketAddress?, localAddress: SocketAddress?, promise: ChannelPromise?) {
             throw UnsupportedOperationException("ChildChannel doesn't support connect()")
         }
+
+
     }
 }

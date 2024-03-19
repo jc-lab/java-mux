@@ -27,8 +27,10 @@ open class NettyMuxChannel<TData>(
         MultiplexSocketAddress(parent.getChannelHandlerContext().channel().remoteAddress(), id)
 
     override fun doRegister() {
-        super.doRegister()
-        initializer(this)
+        if (state != State.ACTIVE) {
+            super.doRegister()
+            initializer(this)
+        }
     }
 
     override fun doWrite(buf: ChannelOutboundBuffer) {
