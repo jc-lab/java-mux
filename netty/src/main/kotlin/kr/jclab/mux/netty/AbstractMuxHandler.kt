@@ -64,6 +64,7 @@ abstract class AbstractMuxHandler<TData>() :
             initializer,
             false
         )
+        result.register()
         onRemoteCreated(result.channel)
         return result
     }
