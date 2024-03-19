@@ -64,8 +64,7 @@ abstract class AbstractMuxHandler<TData>() :
             initializer,
             false
         )
-        result.register()
-        onRemoteCreated(result.channel)
+        onRemoteCreated(result)
         return result
     }
 
@@ -92,7 +91,9 @@ abstract class AbstractMuxHandler<TData>() :
     }
 
     abstract override fun channelRead(ctx: ChannelHandlerContext, msg: Any)
-    protected open fun onRemoteCreated(child: NettyMuxChannel<TData>) {}
+    protected open fun onRemoteCreated(result: CreateChildResult<TData>) {
+        result.register()
+    }
     protected abstract fun onLocalOpen(child: NettyMuxChannel<TData>)
     protected abstract fun onLocalClose(child: NettyMuxChannel<TData>)
     protected abstract fun onLocalDisconnect(child: NettyMuxChannel<TData>)
